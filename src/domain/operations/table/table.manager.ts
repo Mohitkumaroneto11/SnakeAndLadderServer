@@ -108,7 +108,7 @@ export abstract class TableManager {
     public static fetchTable(searchOpts: any) {
         let game: Game = this.getTableFromMemory(searchOpts._id);
         if (!game) {
-            console.log('UNABLE TO FETCH LUDO FROM MEMORY, CREATING NEW LUDO');
+            console.log('UNABLE TO FETCH SNAKE AND LADDER FROM MEMORY, CREATING NEW SNAKE AND LADDER');
             game = this.createTable(searchOpts);
         }
         return game

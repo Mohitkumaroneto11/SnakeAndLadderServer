@@ -19,9 +19,9 @@ export class RabbitMQ {
     private _connection: Connection
     private _winningChannel: Channel
     private _logChannel: Channel
-    private WINNING_GAME_QUEUE = 'oneto11-queue-DeclareCasualGameResult'
-    private LOG_GAME_QUEUE = 'oneto11-queue-CreateCasualGameEventLog'
-    private GAME_JOIN_QUEUE = `oneto11-queue-NewJoinGame`
+    private GAME_JOIN_QUEUE = 'oneto11-queue-NewSnakeAndLadderJoinGame'
+    private WINNING_GAME_QUEUE = 'oneto11-queue-DeclareSnakeAndLadderResult'
+    private LOG_GAME_QUEUE = 'oneto11-queue-CreateSnakeAndLadderEventLog'
 
     public constructor() {
         this.setupConnection()

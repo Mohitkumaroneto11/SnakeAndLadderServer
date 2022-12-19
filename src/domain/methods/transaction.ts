@@ -39,34 +39,37 @@ export class TransactionMethod {
             param = param + ", @Amount=" + request.amt + ", @GameTypeId=2, @MaxBonusAllowed=" + request.mba;
             param = param + ", @GameServerId='" + request.gameserverid + "'";
             param = param + ", @dtUserJson='" + JSON.stringify(request.userList) + "'";
-            var result = await this.sql.GetDataFromTransaction(proc_name, param);
+            //var result = await this.sql.GetDataFromTransaction(proc_name, param);
+            var result = [1,0]
             if (result.length > 0) {
                 console.log("Result : " + result);
                 gameLog(request.gameserverid, `Deduct money before room creation `, result);
-                let dtCasualRoomParticipants = [];
-                for (let o of result) {
-                    var objParticipants = {
-                        UserId: o.UserId,
-                        UserLoginId: o.UserLoginId,
-                        WalletTransactionId: o.WalletTransactionId,
-                        ReferCode: o.ReferCode
-                    };
-                    if (o.ResponseStatus == 1) {
-                        dtCasualRoomParticipants.push(objParticipants);
-                    }
-                    else if (o.ResponseStatus == 501) {
-                        throw new BadRequest("Insufficient balance", ERROR_CODE.INSUFFICIENTBALANCE);
-                    }
-                    else {
-                        throw new BadRequest("Transaction failed", ERROR_CODE.FAILED);
-                    }
+                console.log(request.gameserverid, `Deduct money before room creation `, result)
+                // let dtCasualRoomParticipants = [];
+                // for (let o of result) {
+                //     var objParticipants = {
+                //         UserId: o.UserId,
+                //         UserLoginId: o.UserLoginId,
+                //         WalletTransactionId: o.WalletTransactionId,
+                //         ReferCode: o.ReferCode
+                //     };
+                //     if (o.ResponseStatus == 1) {
+                //         dtCasualRoomParticipants.push(objParticipants);
+                //     }
+                //     else if (o.ResponseStatus == 501) {
+                //         throw new BadRequest("Insufficient balance", ERROR_CODE.INSUFFICIENTBALANCE);
+                //     }
+                //     else {
+                //         throw new BadRequest("Transaction failed", ERROR_CODE.FAILED);
+                //     }
 
-                }
-                const game_proc_name = "PROC_CreateCasualRoomAndAssignToUser";
-                let gameParam = "@ContestId=" + request.cid + ", @GameServerId='" + request.gameserverid + "'" + ", @GameId=" + request.gameId;
-                gameParam = gameParam + ", @dtCasualRoomParticipantsJson='" + JSON.stringify(dtCasualRoomParticipants) + "'";
-                console.log(game_proc_name, gameParam)
-                var gameResult = await this.sql.GetDataFromCasualGame(game_proc_name, gameParam);
+                // }
+                // const game_proc_name = "PROC_CreateCasualRoomAndAssignToUser";
+                // let gameParam = "@ContestId=" + request.cid + ", @GameServerId='" + request.gameserverid + "'" + ", @GameId=" + request.gameId;
+                // gameParam = gameParam + ", @dtCasualRoomParticipantsJson='" + JSON.stringify(dtCasualRoomParticipants) + "'";
+                // console.log(game_proc_name, gameParam)
+                //var gameResult = await this.sql.GetDataFromCasualGame(game_proc_name, gameParam);
+                var gameResult = [{status:1,RoomId:1}]
                 if (gameResult.length > 0) {
                     responseStatus = gameResult[0].status;
                     if (responseStatus == 1 && gameResult[0].RoomId > 0) {
@@ -74,43 +77,44 @@ export class TransactionMethod {
                         joinContestRespone.RoomId = gameResult[0].RoomId;
 
                         gameLog(request.gameserverid, `Room creation successfully`, gameResult);
+                        console.log(request.gameserverid, `Room creation successfully`, gameResult)
                     }
-                    else {
-                        var tbl_RefundUserList = new sql.Table();
-                        tbl_RefundUserList.columns.add("UserId", sql.VarChar(50), { nullable: true });
-                        tbl_RefundUserList.columns.add("WalletTransactionId", sql.BigInt, { nullable: true });
+                    // else {
+                    //     var tbl_RefundUserList = new sql.Table();
+                    //     tbl_RefundUserList.columns.add("UserId", sql.VarChar(50), { nullable: true });
+                    //     tbl_RefundUserList.columns.add("WalletTransactionId", sql.BigInt, { nullable: true });
 
-                        for (let ul of dtCasualRoomParticipants) {
-                            tbl_RefundUserList.rows.add(ul.UserId, ul.WalletTransactionId);
-                        }
+                    //     for (let ul of dtCasualRoomParticipants) {
+                    //         tbl_RefundUserList.rows.add(ul.UserId, ul.WalletTransactionId);
+                    //     }
 
-                        const proc_refund_name = "PROC_REFUND_CASUAL_GAME_ENTRY_FEE_V2";
-                        var refund_result = await this.sql.RefundToUser(proc_refund_name, tbl_RefundUserList);
+                    //     const proc_refund_name = "PROC_REFUND_CASUAL_GAME_ENTRY_FEE_V2";
+                    //     var refund_result = await this.sql.RefundToUser(proc_refund_name, tbl_RefundUserList);
 
-                        gameLog(request.gameserverid, `Refund money in step 1 `, gameResult);
+                    //     gameLog(request.gameserverid, `Refund money in step 1 `, gameResult);
 
-                        joinContestRespone.ResponseStatus = 0;
-                        throw new BadRequest("Room creation failed", ERROR_CODE.FAILED);
-                    }
+                    //     joinContestRespone.ResponseStatus = 0;
+                    //     throw new BadRequest("Room creation failed", ERROR_CODE.FAILED);
+                    // }
                 }
-                else {
+                // else {
 
-                    var tbl_RefundUserList = new sql.Table();
-                    tbl_RefundUserList.columns.add("UserId", sql.VarChar(50), { nullable: true });
-                    tbl_RefundUserList.columns.add("WalletTransactionId", sql.BigInt, { nullable: true });
+                //     var tbl_RefundUserList = new sql.Table();
+                //     tbl_RefundUserList.columns.add("UserId", sql.VarChar(50), { nullable: true });
+                //     tbl_RefundUserList.columns.add("WalletTransactionId", sql.BigInt, { nullable: true });
 
-                    for (let ul of dtCasualRoomParticipants) {
-                        tbl_RefundUserList.rows.add(ul.UserId, ul.WalletTransactionId);
-                    }
+                //     for (let ul of dtCasualRoomParticipants) {
+                //         tbl_RefundUserList.rows.add(ul.UserId, ul.WalletTransactionId);
+                //     }
 
-                    const proc_refund = "PROC_REFUND_CASUAL_GAME_ENTRY_FEE_V2";
-                    var refund_result1 = await this.sql.RefundToUser(proc_refund, tbl_RefundUserList);
+                //     const proc_refund = "PROC_REFUND_CASUAL_GAME_ENTRY_FEE_V2";
+                //     var refund_result1 = await this.sql.RefundToUser(proc_refund, tbl_RefundUserList);
 
-                    gameLog(request.gameserverid, `Refund money in step 2 `, gameResult);
+                //     gameLog(request.gameserverid, `Refund money in step 2 `, gameResult);
 
-                    joinContestRespone.ResponseStatus = 0;
-                    throw new BadRequest("Room creation failed", ERROR_CODE.FAILED);
-                }
+                //     joinContestRespone.ResponseStatus = 0;
+                //     throw new BadRequest("Room creation failed", ERROR_CODE.FAILED);
+                // }
             }
             else {
                 joinContestRespone.ResponseStatus = 0;

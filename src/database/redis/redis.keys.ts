@@ -32,7 +32,7 @@ export class RedisKeys{
     }
 
     public static ContestDetails(gameId:string){
-        return `${this.NODE_ENV}_Contest:ContestDetails:${gameId}`
+        return `${this.NODE_ENV}_Contest:ContestDetails:1`
     }
 
     public static PracticeContestUser(userId:string){

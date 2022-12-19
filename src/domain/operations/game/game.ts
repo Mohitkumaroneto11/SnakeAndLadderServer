@@ -157,6 +157,7 @@ export class Game extends Table {
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
             this.emit(httpResp, 'matchInit')
             if (isRunning) {
+                console.log("prestart --",contestData)
                 await this.onPreGameStart(contestData);
             }
         }
@@ -175,21 +176,42 @@ export class Game extends Table {
             this.sendLogInMongo('preStartGame');
             const response = await GameServer.Instance.GameServices.createGameEntryOnStart(redisData);
             console.log("resp after updating....", response);
-            let resp = {
+            let resp:any = {
+                Type:null,
+                Mode:null,
+                playedBy:null,
+                balanceRequired:0,
+                gameMode:1,
+                gameTurnRemaining: this.gameTurnRemaining,
                 _id: this._id,
+                roomId: this.roomId,
                 players: this.players.map(p => p.playerInfo),
+                remainingPlayers:null,
+                gameTime: this.gameTime,
+                timestamp:0,
+                gameTimeRemaining:0,
                 capacity: this.capacity,
                 isFull: this.isFull,
                 state: this.state,
                 isRunning: this.isRunning(),
-                timeRemaining: -1,
-                gameTime: this.gameTime,
-                roomId: this.roomId,
+                turnIndex:0,
+                phase:1,
+                turnTime:13000,
+                rollTime:0,
+                moveTime:0,
+                changeTurn:false,
+                rolledValues:null,
+                skip:null,
+                timeRemaining:-1,
                 gameStartIn: DELAY_IN_GAME_START - DELAY_IN_PRE_GAME_START,
-                gameTurnRemaining: this.gameTurnRemaining
+                syncAfter:0,
+                move:null,
+                kill:null,
+                gameStartTime:1670492936649
             };
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Sending prestartgame event`, httpResp);
+            console.log(`Sending GameInitialize event`, httpResp);
             setTimeout((httpResp) => {
                 GameServer.Instance.socketServer.emitToSocketRoom(this.ID, 'preStartGame', httpResp);
             }, 1000, httpResp)
