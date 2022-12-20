@@ -172,15 +172,90 @@ export class User {
     private async onExitGame(body: any, callback: any) {
 
         const gameId: string = body.gameId || "";
-        gameLog(gameId, "onExitGame event come from : ", this.name, body);
+        gameLog('common', "onExitGame event come from : ", this.name, body);
         if (this.game && this.game.isRunning()) {
-            const resp = await this.game.onExitGame(this.userId);
+            this.game.log('OnExit event come from=>', this.name);
+            const data = await this.game.onExitGame(this.userId, PlayerState.EXIT, ExitReason.GAME_EXIT);
 
+            const resp = new BaseHttpResponse(data, null, 200, this.game?.ID);
             this.game.log("onExitGame ", resp);
             callback(resp);
+            // this.game.log(`OnExit resp=>`, resp)
+            // GameServer.Instance.socketServer.emitToSocketRoom(this.game.ID, "exitGame", resp);
             this.game.log('Removing player from socket room on Gameexit', this.userId);
             this.leaveRoom(this.game.ID)
+
+            // if(data.state != GameState.FINISHED){
+            //     this.game?.log(`Send rollDice on playerexit ${this.name}`, resp);
+            //     GameServer.Instance.socketServer.emitToSocketRoom(this.game.ID, "rollDice", resp);
+            // }
         }
+    }
+    public async onRollDice(body: any, callback: any) {
+        try {
+            console.log("\n onRollDice Making body ", body);
+            this.game.log(`Role dice event come from ${this.name} =>`, body);
+            console.log("\n dice value ", body.diceValue);
+            console.log("\n gameid value ", body.gameId);
+            const dv: number = body.diceValue;
+            const rollResponse = await this.game.onRollDice(this.userId, dv);
+            console.log("\n onRollDice response ", rollResponse);
+            const resp = new BaseHttpResponse(rollResponse, null, 200, this.game?.ID);
+            callback(resp);
+            this.game.log('rolldice resp=>', rollResponse);
+            // console.log("\n onRollDice Making resp ", resp);
+            GameServer.Instance.socketServer.emitToSocketRoom(this.game.ID, "rollDice", resp);
+            return resp
+        } catch (error) {
+            console.error(error);
+            const resp = new BaseHttpResponse(null, JSON.stringify(error), 400, this.game?.ID);
+            this.game?.log('Error on rollDice=>', resp)
+            callback(resp)
+        }
+    }
+    private async exitBeforeMatchMaking() {
+        if (this.game && this.game.isRunning()) {
+            await this.game.onExitGame(this.userId, PlayerState.AUTOEXIT, ExitReason.EXIT_BEFORE_MATCH_MAKING);
+            // this.game = null;
+        }
+    }
+    public async onMovePawn(body: any, callback: any) {
+        try {
+            console.log("\n \n onMovePawn body, ", body);
+            console.log("\n \n onMovePawn body type ", typeof body);
+            this.game.log(`Move pawn event come from ${this.name} =>`, body);
+            const pawnIndex = body.pawnIndex || 0;
+            const playerPos = body.playerPos;
+            const diceValueIndex = body.diceValueIndex || 0;
+            if (!this.game) {
+                return;
+            }
+            const moveResponse = await this.game.onMovePawn(this.userId, pawnIndex, diceValueIndex);
+            console.log("onMovePawn", moveResponse);
+            callback(moveResponse);
+        } catch (error) {
+            console.error(error);
+            const resp = new BaseHttpResponse(null, JSON.stringify(error), 400, this.game?.ID);
+            this.game?.log('Error on moveDice=>', resp)
+            callback(resp)
+        }
+    }
+    private async onGetRoom(body: any, callback: any) {
+        var resp = {}
+        if (this.game && this.game.isRunning()) {
+
+            resp = {
+                _id: this.game.ID
+            }
+            this.game.log('User hit getRoom', resp)
+        }
+        console.log('Sending resp for getRoom event', resp)
+
+        let httpResp = new BaseHttpResponse(resp, null, 200, this.game?.ID)
+        callback(httpResp);
+        this.send("getRoom", resp);
+        return
+
     }
     private async onGameEntry(body: any, callback: any) {
         const gameId = body.gameId

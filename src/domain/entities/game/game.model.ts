@@ -5,13 +5,18 @@ export enum GameState {
     FINISHED= 3,
     DESTROYED= 4
 }
-export const WINNING_POSITION = 100;
+export const WINNING_POSITION = 30;
 
 export type GameOpts = {
     _id: string
     capacity : number
     state : number
 }
+export enum ExitReason {
+    GAME_EXIT = 1,
+    EXIT_BEFORE_MATCH_MAKING = 2,
+    TURN_SKIP_3 = 3
+  }
 
 export interface GameWinningData {
     RoomId: string,
@@ -31,6 +36,12 @@ export enum MoveType{
     NORMAL_SAFE = 4,
     NORMAL_RISK = 5
 
+}
+export enum GameType {
+    NORMAL = 1,
+    XFAC_EASY = 2,
+    XFAC_MEDIUM = 3,
+    XFAC_HARD = 4
 }
 
 export interface XFacMove{

@@ -30,4 +30,7 @@ export class SocketServer {
     public emitToSocketRoom(tableId: string, event: string, data: any) {
         this.server.to(tableId).emit(event, data)
     }
+    public joinInSocketRoom(tableId: string) {
+        this.server.socketsJoin(tableId);
+    }
 }
