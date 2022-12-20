@@ -38,7 +38,7 @@ export class Player {
         this.color = opts.pos != undefined ? (opts.pos + 1) : undefined;
         this.pos = opts.pos;
         this.initPosition = opts.pos != undefined ? PLAYER_PATH[opts.pos][0] : undefined;
-        this.pawnStack = opts.pos != undefined ? [this.initPosition, this.initPosition, this.initPosition, this.initPosition] : [];
+        this.pawnStack = opts.pos != undefined ? [this.initPosition, this.initPosition] : [];
         
         this.state = PlayerState.WAITING;
         this.score = 0;
