@@ -1079,7 +1079,7 @@ export class Game extends Table {
             };
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Sending prestartgame event`, httpResp);
-            console.log(`Sending GameInitialize event`, httpResp);
+            console.log(`Sending prestartgame event`, httpResp);
             setTimeout((httpResp) => {
                 GameServer.Instance.socketServer.emitToSocketRoom(this.ID, 'preStartGame', httpResp);
             }, 1000, httpResp)

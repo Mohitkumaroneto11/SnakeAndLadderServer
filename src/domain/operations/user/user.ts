@@ -162,8 +162,10 @@ export class User {
             console.log("gameObject ", this.game);
             this.joinRoom(this.game.ID);
             this.game.log(`On game join of ${this.name} resp=>`, resp)
-            this.startWaitingTimeout(maxWaitingTime - 27000);
+            this.startWaitingTimeout(maxWaitingTime - 7000);
             return callback(resp);
+        } else if (gameObject.isFinished() || gameObject.isDestroyed()) {
+            return callback(new BaseHttpResponse({}, "Game Is Finsihed", ERROR_CODE.GAME_ENDED, this.game?.ID));
         }
 
         let error = new BaseHttpResponse({}, "No Game Found", ERROR_CODE.DEFAULT, this.game?.ID);

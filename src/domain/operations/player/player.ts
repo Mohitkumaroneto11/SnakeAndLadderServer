@@ -143,7 +143,7 @@ export class Player {
             skip: this.skip,
             score: this.SCORE,
             rank: this.rank,
-            mid: this.mid,
+            // mid: this.mid,
             did: this.did,
             referCode: this.referCode,
             prize: this.prize,
