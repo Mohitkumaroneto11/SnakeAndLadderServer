@@ -1022,7 +1022,7 @@ export class Game extends Table {
         if (resp.joiningSuccess == true) {
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
-            this.joinRoom(this._id);
+            //this.joinRoom(this._id);
             this.emit(httpResp, 'matchInit')
             if (isRunning) {
                 console.log("prestart --",contestData)
