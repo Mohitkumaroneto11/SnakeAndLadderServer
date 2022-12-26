@@ -66,7 +66,7 @@ export class Game extends Table {
         this.totalTurn = opts.gameTurnRemaining || TOTAl_GAME_TURNS;
         this.xFacLogId = opts.xFacLogId
         this.players = opts.players ? opts.players.map((p: any) => { const player = new Player(p); return player; }): []
-        
+        this.gameId = 1
     }
     public initTableOnRestart(opts: any) {
         this._id = opts._id;
@@ -761,7 +761,7 @@ export class Game extends Table {
         const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
         this.sendLogInMongo('onRollingTimeout');
         //this.log(`changeTurn called on rollingPhaseTimeout of player - ${currentPlayer.ID}`, httpResp)
-        this.log(`Rolling phase timeout for ${currentPlayer.ID} call rollDice`, httpResp)
+        //this.log(`Rolling phase timeout for ${currentPlayer.ID} call rollDice`, httpResp)
         GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "rollDice", httpResp);
 
     }
@@ -1015,14 +1015,14 @@ export class Game extends Table {
             isRunning: isRunning,
             timeRemaining: -1,
             gameTime: this.gameTime,
-            roomId: this.roomId,
+            roomId: this.roomId.toString(),
             joiningSuccess: joiningSuccess,
             // waitingTime: contestData.GameStartInSeconds * 1000
         };
         if (resp.joiningSuccess == true) {
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
-            //this.joinRoom(this._id);
+            this.joinRoom(this._id);
             this.emit(httpResp, 'matchInit')
             if (isRunning) {
                 console.log("prestart --",contestData)
