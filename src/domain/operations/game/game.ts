@@ -988,7 +988,7 @@ export class Game extends Table {
             capacity: this.capacity,
             gameTimeRemaining: gameTimeRemain,
             gameTime: this.gameTime,
-            roomId: this.roomId ? this.roomId.toString() : '',
+            roomId: this.roomId ? this.roomId : '',
             gameStartTime: this.gameStartTime,
             gameTurnRemaining: this.gameTurnRemaining,
         };
