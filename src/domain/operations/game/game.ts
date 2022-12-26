@@ -1045,8 +1045,8 @@ export class Game extends Table {
             const response = await GameServer.Instance.GameServices.createGameEntryOnStart(redisData);
             console.log("resp after updating....", response);
             let resp:any = {
-                Type:this.gameType,
-                Mode:this.gameMode,
+                Type:null,
+                Mode:null,
                 playedBy:null,
                 balanceRequired:0,
                 gameMode:this.gameMode,
