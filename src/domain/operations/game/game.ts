@@ -1015,7 +1015,7 @@ export class Game extends Table {
             isRunning: isRunning,
             timeRemaining: -1,
             gameTime: this.gameTime,
-            roomId: this.roomId.toString(),
+            roomId: this.roomId,
             joiningSuccess: joiningSuccess,
             // waitingTime: contestData.GameStartInSeconds * 1000
         };
