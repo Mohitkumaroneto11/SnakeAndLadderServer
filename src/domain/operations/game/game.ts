@@ -1052,7 +1052,7 @@ export class Game extends Table {
                 gameMode:this.gameMode,
                 gameTurnRemaining: this.gameTurnRemaining,
                 _id: this._id,
-                roomId: this.roomId.toString(),
+                roomId: this.roomId,
                 players: this.players.map(p => p.playerInfo),
                 remainingPlayers:null,
                 gameTime: this.gameTime,
