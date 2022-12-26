@@ -174,6 +174,8 @@ export class User {
     private async onExitGame(body: any, callback: any) {
 
         const gameId: string = body.gameId || "";
+        let game = TableManager.getTableFromMemory(gameId) || await TableManager.fetchTableStateRedis(gameId);
+        this.game = game;
         gameLog('common', "onExitGame event come from : ", this.name, body);
         if (this.game && this.game.isRunning()) {
             this.game.log('OnExit event come from=>', this.name);

@@ -751,7 +751,7 @@ export class Game extends Table {
             // moveTime: this.moveTime,
             turnTime: this.turnTime,
             skip: {
-                turnIndex: currentPlayer.POS,
+                //turnIndex: currentPlayer.POS,
                 reason: TURN_SKIP_REASON.TURN_TIMEOUT
             },
             gameMode: this.gameMode,
@@ -760,7 +760,7 @@ export class Game extends Table {
 
         const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
         this.sendLogInMongo('onRollingTimeout');
-        this.log(`changeTurn called on rollingPhaseTimeout of player - ${currentPlayer.ID}`, httpResp)
+        //this.log(`changeTurn called on rollingPhaseTimeout of player - ${currentPlayer.ID}`, httpResp)
         this.log(`Rolling phase timeout for ${currentPlayer.ID} call rollDice`, httpResp)
         GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "rollDice", httpResp);
 
@@ -818,14 +818,14 @@ export class Game extends Table {
     }
 
     private async handleAutoExit(currentPlayer: Player): Promise<any> {
-        const missed = currentPlayer.skipped(true);
-        if (missed >= 3) {
-            const resp = await this.onExitGame(currentPlayer.ID, PlayerState.AUTOEXIT, ExitReason.TURN_SKIP_3);
-            if (resp.state == GameState.FINISHED) {
-                this.log(`Game end due to 3 skips count ${missed}`, currentPlayer.ID, resp)
-                return true;
-            }
-        }
+        // const missed = currentPlayer.skipped(true);
+        // if (missed >= 3) {
+        //     const resp = await this.onExitGame(currentPlayer.ID, PlayerState.AUTOEXIT, ExitReason.TURN_SKIP_3);
+        //     if (resp.state == GameState.FINISHED) {
+        //         this.log(`Game end due to 3 skips count ${missed}`, currentPlayer.ID, resp)
+        //         return true;
+        //     }
+        // }
 
         return false;
     }
@@ -1022,7 +1022,7 @@ export class Game extends Table {
         if (resp.joiningSuccess == true) {
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
-            //this.joinRoom(this._id);
+            this.joinRoom(this._id);
             this.emit(httpResp, 'matchInit')
             if (isRunning) {
                 console.log("prestart --",contestData)
@@ -1117,6 +1117,7 @@ export class Game extends Table {
             this.sendLogInMongo('startGame');
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log('Sending startGame event ', httpResp);
+            console.log("=======startGame Event========")
             this.emit(httpResp, 'startGame')
             this.players.forEach(player=>{
                 if(player.isXFac){
