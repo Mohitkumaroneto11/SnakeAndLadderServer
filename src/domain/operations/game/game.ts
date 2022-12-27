@@ -1099,7 +1099,7 @@ export class Game extends Table {
             this.state = GameState.RUNNING;
             this.gameStartTime = Date.now();
             GameServer.Instance.GameCount.inc();
-            this.startGameCountDown();
+            //this.startGameCountDown();
             let resp = {
                 _id: this._id,
                 players: this.players.map(p => p.playerInfo),
@@ -1522,4 +1522,5 @@ export class Game extends Table {
         })
         return isExist
     }
+    
 }
