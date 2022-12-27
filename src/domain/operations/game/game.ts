@@ -1108,6 +1108,7 @@ export class Game extends Table {
                 state: this.state,
                 isRunning: this.isRunning(),
                 timeRemaining: -1,
+                phase:GamePhase.ROLL_DICE,
                 gameTime: this.gameTime,
                 roomId: this.roomId,
                 gameStartTime: this.gameStartTime,
