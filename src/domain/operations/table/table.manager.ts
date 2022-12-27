@@ -1,14 +1,28 @@
-import { gameLog } from 'utils/logger';
-import { GameServer } from 'application';
-import { TableFactory } from './table.factory'
-import { GameState } from 'domain/entities/game/game.model';
-import { Game } from '../game/game';
-import {RedisStorage} from '../../../database/redis/game.redis';
-import {RedisKeys} from '../../../database/redis/redis.keys'
+import {
+    gameLog
+} from 'utils/logger';
+import {
+    GameServer
+} from 'application';
+import {
+    TableFactory
+} from './table.factory'
+import {
+    GameState
+} from 'domain/entities/game/game.model';
+import {
+    Game
+} from '../game/game';
+import {
+    RedisStorage
+} from '../../../database/redis/game.redis';
+import {
+    RedisKeys
+} from '../../../database/redis/redis.keys'
 export abstract class TableManager {
-    private static _tableMap: Map<string, Game> = new Map();
-    private static _waitingTables: Set<string> = new Set();
-    private static _4_waitingTables: Set<string> = new Set();
+    private static _tableMap: Map < string, Game > = new Map();
+    private static _waitingTables: Set < string > = new Set();
+    private static _4_waitingTables: Set < string > = new Set();
 
     private static createTable(opts: any): Game {
         const newTable: Game = TableFactory.getTable(opts);
@@ -23,8 +37,7 @@ export abstract class TableManager {
     public static addWaitingTable(tableId: string, capacity: number) {
         if (capacity == 2) {
             this._waitingTables.add(tableId);
-        }
-        else {
+        } else {
             this._4_waitingTables.add(tableId);
         }
     }
@@ -39,18 +52,20 @@ export abstract class TableManager {
         if (searchOpts.playerCount == 2) {
             for (const tableId of this._waitingTables) {
                 gameLog(tableId, 'Check table ', tableId, 'in table map')
-                console.log('++++++++++++======>', tableId, this._tableMap.get(tableId).CONTEST_ID, this._tableMap.get(tableId)?.canJoin(searchOpts.userId))
-                if (this._tableMap.has(tableId) && this._tableMap.get(tableId).CONTEST_ID == searchOpts.contestId && this._tableMap.get(tableId)?.canJoin(searchOpts.userId)) {
+                console.log('++++++++++++======>', tableId, this._tableMap.get(tableId).CONTEST_ID,
+                    this._tableMap.get(tableId) ?.canJoin(searchOpts.userId))
+                if (this._tableMap.has(tableId) && this._tableMap.get(tableId).CONTEST_ID == searchOpts.contestId &&
+                    this._tableMap.get(tableId) ?.canJoin(searchOpts.userId)) {
 
                     return this._tableMap.get(tableId);
                 }
             }
-        }
-        else {
+        } else {
             for (const tableId of this._4_waitingTables) {
                 gameLog('common', 'Check table ', tableId, 'in table map')
                 console.log('TABLE MAP', this._tableMap)
-                if (this._tableMap.has(tableId) && this._tableMap.get(tableId).CONTEST_ID == searchOpts.contestId && this._tableMap.get(tableId)?.canJoin(searchOpts.userId)) {
+                if (this._tableMap.has(tableId) && this._tableMap.get(tableId).CONTEST_ID == searchOpts.contestId &&
+                    this._tableMap.get(tableId) ?.canJoin(searchOpts.userId)) {
                     gameLog('common', 'User can use this table', this._tableMap.get(tableId))
                     return this._tableMap.get(tableId);
                 }
@@ -71,14 +86,14 @@ export abstract class TableManager {
         this._waitingTables.delete(tableId);
     }
 
-    public static async fetchTableStateRedis(gameId: string): Promise<Game> {
+    public static async fetchTableStateRedis(gameId: string): Promise < Game > {
         // return null
         const table = await GameServer.Instance.GameServices.getFullGameState(gameId);
         // && table.state == GameState.RUNNING
         if (table) {
             let existingTable = this.getTableFromMemory(gameId);
             gameLog(gameId, 'Existing game sync in fetchTableStateRedis', existingTable);
-            if(existingTable){
+            if (existingTable) {
                 return existingTable
             }
             gameLog(gameId, 'Creating new game on gameSync')
@@ -87,19 +102,19 @@ export abstract class TableManager {
             return game;
         }
     }
-    public static async getGameStateRedis(gameId: string){
+    public static async getGameStateRedis(gameId: string) {
         let getRedisKeyForGameData = RedisKeys.getGameDataKey();
-        let response = await RedisStorage.Instance.hmget(gameId,getRedisKeyForGameData);
+        let response = await RedisStorage.Instance.hmget(gameId, getRedisKeyForGameData);
         return response;
-        
-        
+
+
     }
-    public static async updateGameStateRedis(gameId: string){
+    public static async updateGameStateRedis(gameId: string) {
         let getRedisKeyForGameData = RedisKeys.getGameDataKey();
-        let response = await RedisStorage.Instance.hmset(gameId,getRedisKeyForGameData);
+        let response = await RedisStorage.Instance.hmset(gameId, getRedisKeyForGameData);
         return response;
-        
-        
+
+
     }
 
     public static getTableFromMemory(gameId: string): Game {
