@@ -46,6 +46,8 @@ export class User {
         this.socket.on('joinGame', this.onJoinGame.bind(this));
         this.socket.on('gameEntry', this.onGameEntry.bind(this));
         this.socket.on("rollDice", this.onRollDice.bind(this));
+        this.socket.on("movePawn", this.onMovePawn.bind(this));
+        
         //this.socket.on('updateScore', this.onUpdateScore.bind(this))
     }
 
