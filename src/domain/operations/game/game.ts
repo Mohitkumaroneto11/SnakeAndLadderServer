@@ -123,7 +123,8 @@ export class Game extends Table {
         let canMove = this.canMovePawn(currentPlayer.POS);
         console.log("can move ", canMove);
         // no  pawn to move
-        if (canMove === false && !await this.checkGameTimeOverCondition(currentPlayer.ID)) {
+        //if (canMove === false && !await this.checkGameTimeOverCondition(currentPlayer.ID)) {
+        if (canMove === false ) {
             this.changeTurn();
             const resp = {
                 changeTurn: true,
@@ -136,10 +137,10 @@ export class Game extends Table {
                 // moveTime: this.moveTime,
                 turnTime: this.turnTime,
                 gameMode: this.gameMode,
-                gameTurnRemaining: this.gameTurnRemaining
-                // skip: {
-                //     turnIndex: this.turnIndex,
-                // }
+                gameTurnRemaining: this.gameTurnRemaining,
+                skip: {
+                    turnIndex: this.turnIndex,
+                }
             }
             this.sendLogInMongo('onRollDice');
             this.log(`Player - ${currentPlayer.ID} turn change while rolling dice. Reason player canMove false`, currentPlayer)
@@ -150,7 +151,8 @@ export class Game extends Table {
             console.log("\n Move pawn for same player \n ");
             if (diceValues[diceValues.length - 1] == 6) {
                 const tripple = currentPlayer.sixCounter(true);
-                if (tripple == 3 && !await this.checkGameTimeOverCondition(currentPlayer.ID)) {
+                //if (tripple == 3 && !await this.checkGameTimeOverCondition(currentPlayer.ID)) {
+                if (tripple == 3 ) {
                     currentPlayer.sixCounter(false);
                     this.changeTurn();
                     const resp = {
@@ -299,12 +301,12 @@ export class Game extends Table {
         let nextPlayerId = this.getCurrentPlayer().ID
         if (resp?.changeTurn == true && playerId != nextPlayerId) {
             console.log('Change turn while move pawn')
-            const gameOver = await this.checkGameTimeOverCondition(playerId);
-            if (gameOver) {
-                resp.state = this.state
-                this.log('Gamze over while move pawn')
-                // return httpResp;
-            }
+            // const gameOver = await this.checkGameTimeOverCondition(playerId);
+            // if (gameOver) {
+            //     resp.state = this.state
+            //     this.log('Gamze over while move pawn')
+            //     // return httpResp;
+            // }
         }
         const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
         this.log('move pawn resp=>', httpResp);
@@ -1100,6 +1102,7 @@ export class Game extends Table {
             this.gameStartTime = Date.now();
             GameServer.Instance.GameCount.inc();
             //this.startGameCountDown();
+            this.startTurnPhaseTimer();
             let resp = {
                 _id: this._id,
                 players: this.players.map(p => p.playerInfo),
@@ -1113,7 +1116,8 @@ export class Game extends Table {
                 roomId: this.roomId,
                 gameStartTime: this.gameStartTime,
                 gameStartIn: DELAY_IN_GAME_START - DELAY_IN_PRE_GAME_START,
-                gameTurnRemaining: this.gameTurnRemaining
+                gameTurnRemaining: this.gameTurnRemaining,
+                turnTime: this.turnTime
             };
             this.sendLogInMongo('startGame');
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);

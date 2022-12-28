@@ -67,12 +67,12 @@ class UserService {
             }
 
             // Join user the game
-            // if(ticket.playerPos==0){
-            //     ticket.playerPos=1;
-            // }
-            // if(ticket.playerPos==1){
-            //     ticket.playerPos=0;
-            // }
+            if(ticket.playerPos==0){
+                ticket.playerPos=1;
+            }
+            if(ticket.playerPos==1){
+                ticket.playerPos=0;
+            }
             let playerOpts: PlayerOpts = {
                 _id: user._id,
                 name: user.name,
