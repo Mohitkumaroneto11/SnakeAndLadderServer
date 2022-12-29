@@ -45,7 +45,6 @@ class UserService {
                 gameTurnRemaining: contestData.NoOfTurn,
                 turnTime: contestData.TurnTime,
                 gameId: ticket.metaData?.gameId
-                
             };
 
 

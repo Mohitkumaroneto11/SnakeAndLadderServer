@@ -1066,7 +1066,7 @@ export class Game extends Table {
                 isRunning: this.isRunning(),
                 turnIndex:0,
                 phase:1,
-                turnTime:13000,
+                turnTime:this.turnTime,
                 rollTime:0,
                 moveTime:0,
                 changeTurn:false,
