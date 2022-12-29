@@ -1066,7 +1066,7 @@ export class Game extends Table {
                 isRunning: this.isRunning(),
                 turnIndex:0,
                 phase:1,
-                turnTime:this.turnTime,
+                turnTime:TURN_TIME,
                 rollTime:0,
                 moveTime:0,
                 changeTurn:false,
@@ -1117,7 +1117,7 @@ export class Game extends Table {
                 gameStartTime: this.gameStartTime,
                 gameStartIn: DELAY_IN_GAME_START - DELAY_IN_PRE_GAME_START,
                 gameTurnRemaining: this.gameTurnRemaining,
-                turnTime: this.turnTime
+                turnTime: TURN_TIME
             };
             this.sendLogInMongo('startGame');
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
