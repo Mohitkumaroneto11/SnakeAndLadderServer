@@ -51,7 +51,7 @@ export class Game extends Table {
         this.phase = GamePhase.ROLL_DICE;
         // this.rollTime = ROLL_TIME;
         // this.moveTime = MOVE_TIME;
-        this.turnTime = opts.turnTime || TURN_TIME
+        this.turnTime = TURN_TIME
         this.gameTime = opts.gameTime || GAME_TIME;
         this.gameStartTime = Date.now();
         this.isGameTimeOver = false;
@@ -1024,7 +1024,7 @@ export class Game extends Table {
         if (resp.joiningSuccess == true) {
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
-            //this.joinRoom(this._id);
+            this.joinRoom(this._id);
             this.emit(httpResp, 'matchInit')
             if (isRunning) {
                 console.log("prestart --",contestData)
