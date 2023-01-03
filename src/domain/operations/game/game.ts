@@ -1028,11 +1028,11 @@ export class Game extends Table {
             this.log(`Joining success of user ${playerOpts.name} call matchInit on room. Game is running ${isRunning}`, httpResp)
             //this.joinRoom(this.ID)
             this.emit(httpResp, 'matchInit')
-            // if (isRunning) {
-            //     console.log("prestart --",contestData)
-            //     setTimeout(async ()=>{await this.onPreGameStart(contestData)},10000);
-            // }
-            await this.onPreGameStart(contestData)
+            if (isRunning) {
+                // console.log("prestart --",contestData)
+                // setTimeout(async ()=>{await this.onPreGameStart(contestData)},10000);
+                await this.onPreGameStart(contestData)
+            }
         }
         return resp
     }
