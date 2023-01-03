@@ -43,7 +43,7 @@ export class Player {
         this.state = PlayerState.WAITING;
         this.score = 0;
         this.rank = -1;
-
+        this.skip = 0;
         this.totalGameWinner = opts.totalGameWinners
         this.playerType = opts.playerType ? opts.playerType : PlayerType.HUMAN;
         this.xfac = opts.xfac;

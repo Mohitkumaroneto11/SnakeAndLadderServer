@@ -820,14 +820,14 @@ export class Game extends Table {
     }
 
     private async handleAutoExit(currentPlayer: Player): Promise<any> {
-        // const missed = currentPlayer.skipped(true);
-        // if (missed >= 3) {
-        //     const resp = await this.onExitGame(currentPlayer.ID, PlayerState.AUTOEXIT, ExitReason.TURN_SKIP_3);
-        //     if (resp.state == GameState.FINISHED) {
-        //         this.log(`Game end due to 3 skips count ${missed}`, currentPlayer.ID, resp)
-        //         return true;
-        //     }
-        // }
+        const missed = currentPlayer.skipped(true);
+        if (missed >= 3) {
+            const resp = await this.onExitGame(currentPlayer.ID, PlayerState.AUTOEXIT, ExitReason.TURN_SKIP_3);
+            if (resp.state == GameState.FINISHED) {
+                this.log(`Game end due to 3 skips count ${missed}`, currentPlayer.ID, resp)
+                return true;
+            }
+        }
 
         return false;
     }
@@ -934,6 +934,7 @@ export class Game extends Table {
 
         // If player self exit and game not end than chanage turn also.
         if (reason == ExitReason.GAME_EXIT && !gameOver && this.turnIndex == exitPlayer[0].POS) {
+            console.log("Change turn in case of player self exit")
             this.log('Change turn in case of player self exit', exitPlayer[0].ID)
             this.changeTurn();
 
@@ -951,6 +952,7 @@ export class Game extends Table {
             }
             var httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log(`Send rollDice on playerexit ${exitPlayer[0].ID}`, httpResp);
+            console.log("Send rollDice on playerexit "+exitPlayer[0].ID, httpResp)
             GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "rollDice", httpResp);
         }
 
