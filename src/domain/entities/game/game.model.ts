@@ -5,7 +5,7 @@ export enum GameState {
     FINISHED= 3,
     DESTROYED= 4
 }
-export const WINNING_POSITION = 30;
+export const WINNING_POSITION = 42;
 
 export type GameOpts = {
     _id: string

@@ -318,7 +318,7 @@ export class Player {
         // const won = this.pawnStack.every(
         //     (coin) => coin === WINNING_POSITION
         // );
-        if (homeTokens >= 4) {
+        if (homeTokens >= 2) {
             this.state = PlayerState.WON;
             return true;
         }

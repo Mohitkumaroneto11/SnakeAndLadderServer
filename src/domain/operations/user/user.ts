@@ -201,6 +201,7 @@ export class User {
     public async onRollDice(body: any, callback: any) {
         try {
             console.log("\n onRollDice Making body ", body);
+            console.log(`Role dice event come from ${this.name} =>`, body);
             this.game.log(`Role dice event come from ${this.name} =>`, body);
             console.log("\n dice value ", body.diceValue);
             console.log("\n gameid value ", body.gameId);
