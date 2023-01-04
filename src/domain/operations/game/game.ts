@@ -1049,15 +1049,15 @@ export class Game extends Table {
             this.sendLogInMongo('preStartGame');
             const response = await GameServer.Instance.GameServices.createGameEntryOnStart(redisData);
             console.log("resp after updating....", response);
-            // this.players.sort(function(a:Player, b:Player) {
-            //     var keyA =a.POS,
-            //       keyB = b.POS;
-            //     // Compare the 2 dates
-            //     if (keyA < keyB) return -1;
-            //     if (keyA > keyB) return 1;
-            //     return 0;
-            //   });
-            //console.log("========PLayer sorting========")
+            this.players.sort(function(a:Player, b:Player) {
+                var keyA =a.POS,
+                  keyB = b.POS;
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+              });
+            console.log("========PLayer sorting========")
             //console.log(this.players)
             let resp:any = {
                 Type:null,
