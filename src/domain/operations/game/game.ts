@@ -422,11 +422,11 @@ export class Game extends Table {
                             diceValue: diceValue
                         },
                         kill: {
-                            killer: {
-                                pawnIndex: pawnIndex,
-                                playerIndex: this.currentPlayer(currentTurn).POS
-                            },
-                            killed: isValid.coinEliminated
+                            // killer: {
+                            //     pawnIndex: pawnIndex,
+                            //     playerIndex: this.currentPlayer(currentTurn).POS
+                            // },
+                            //killed: isValid.coinEliminated
                         }
                     };
                     return resp;
@@ -487,12 +487,12 @@ export class Game extends Table {
         const isValid = isValidPawnPosition(currentPlayer.POS, diceValue, pawnPos, currentPlayer.killedBefore);
         console.log("isValid  ", isValid);
         if (isValid) {
-            const resp = await this.updatePlayerCoinPosition(pawnIndex, diceValue);
-            console.log('New coin position', resp)
-            if (resp && resp.coinEliminated) {
-                currentPlayer.updateHasKilled();
-                return resp;
-            }
+            // const resp = await this.updatePlayerCoinPosition(pawnIndex, diceValue);
+            // console.log('New coin position', resp)
+            // if (resp && resp.coinEliminated) {
+            //     currentPlayer.updateHasKilled();
+            //     return resp;
+            // }
             return true;
             // console.log("pawn stack after ", currentPlayer.playerInfo.pawnStack);
         }
@@ -689,9 +689,9 @@ export class Game extends Table {
         for (let i = 0; i < n; i++){
             let randomPercent = Math.ceil(Math.random() * 100);
             if (randomPercent > weightage) {
-                randomArray.push(Math.floor(Math.random() * (6 - 4 + 1) + 4))
+                randomArray.push(Math.floor(Math.random() * (5 - 4 + 1) + 4))
             } else {
-                randomArray.push(Math.ceil(Math.random() * 6))
+                randomArray.push(Math.ceil(Math.random() * 5))
             }
         }
         return randomArray;
