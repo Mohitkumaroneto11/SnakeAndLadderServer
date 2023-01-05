@@ -358,5 +358,13 @@ export class Player {
             }
         }
     }
+    public eliminateCoinBySnake(pawnPos: number,snakeTail:number): number {
+        for (let i = 0; i < this.pawnStack.length; i++) {
+            if (this.pawnStack[i] == pawnPos) {
+                this.pawnStack[i] = snakeTail;
+                return i;
+            }
+        }
+    }
     
 }

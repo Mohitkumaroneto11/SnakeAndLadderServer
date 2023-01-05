@@ -10,6 +10,7 @@ import { isValidPawnPosition, isSafePosition } from './path';
 import { ContestWinnerRequest, TransactionTokenRequest } from 'domain/entities/transaction/transaction.dto';
 import { sendGameEndEvent } from 'utils/game';
 import { TableManager } from '../table/table.manager';
+import {Board} from '../table/table.board'
 const TURN_TIME = 13000;
 const GAME_TIME = 120000;
 const DELAY_IN_GAME_END = 2000;
@@ -42,6 +43,11 @@ export class Game extends Table {
     public gameId: number;
     private isPrivate: boolean;
     private totalTurn: number;
+    private SnakeHead: Array<number>;
+    private SnakeTail: Array<number>;
+    private LadderHead: Array<number>;
+    private LadderTail: Array<number>;
+    private BoardId:number
     
     private isOnGameEndCallbackCalled: boolean
     public constructor(opts: any) {
@@ -66,7 +72,13 @@ export class Game extends Table {
         this.totalTurn = opts.gameTurnRemaining || TOTAl_GAME_TURNS;
         this.xFacLogId = opts.xFacLogId
         this.players = opts.players ? opts.players.map((p: any) => { const player = new Player(p); return player; }): []
-        this.gameId = 1
+        this.gameId = 1;
+        this.BoardId=1;
+        this.SnakeHead = Board.Instance.SnakeHead;
+        this.SnakeTail = Board.Instance.SnakeTail;
+        this.LadderHead = Board.Instance.LadderHead;
+        this.LadderTail = Board.Instance.LadderTail;
+
     }
     public initTableOnRestart(opts: any) {
         this._id = opts._id;
@@ -404,7 +416,7 @@ export class Game extends Table {
             if (isValid) {
                 console.log('Is valid move', isValid)
                 if (isValid.coinEliminated) {
-                    currentPlayer.sixCounter(false);
+                    //currentPlayer.sixCounter(false);
                     const resp: any = {
                         changeTurn: false,
                         phase: this.phase,
@@ -421,11 +433,14 @@ export class Game extends Table {
                             pawnIndex: pawnIndex,
                             diceValue: diceValue
                         },
-                        kill: {
-                            killer: {
-                                pawnIndex: pawnIndex,
-                                playerIndex: this.currentPlayer(currentTurn).POS
-                            },
+                        // kill: {
+                        //     // killer: {
+                        //     //     pawnIndex: pawnIndex,
+                        //     //     playerIndex: this.currentPlayer(currentTurn).POS
+                        //     // },
+                        //     killed: isValid.coinEliminated
+                        // }
+                        snake: {
                             killed: isValid.coinEliminated
                         }
                     };
@@ -608,25 +623,40 @@ export class Game extends Table {
         return currentPlayer.hasWon;
     }
     public eliminateCoin(position: number, dryRun: boolean = false): any {
-        if (isSafePosition(position)) {
-            console.log("cant eliminate as its s safe cell");
-            return false;
-        }
-        if (this.canAttack(position)) {
-            console.log("\n can attack now ");
+        // if (isSafePosition(position)) {
+        //     console.log("cant eliminate as its s safe cell");
+        //     return false;
+        // }
+        if (this.killedBySnake(position)) {
+            console.log("\n can killed now ");
             // Update kill only when dryRun is false;
             //return dryRun ? true : this.resetPlayerCoin(position);
-            return false;
+            return dryRun ? true : this.resetPlayerCoinSnake(position);
+            //return false;
         }
         return false;
+    }
+    private resetPlayerCoinSnake(pawnPos: number): any {
+        const currentPlayer = this.getCurrentPlayer();
+        const SnakePos = this.getSnakePostion(pawnPos,true)
+        if(SnakePos.length == 0){
+            return;
+        }
+        const player = this.players.find((x) => x.ID === currentPlayer.ID);
+        const killed: any = {
+            pawnIndex: pawnPos,
+            playerIndex: 1
+        }
+        killed.pawnIndex = player.eliminateCoinBySnake(pawnPos,SnakePos[0].snakeTail);
+        killed.playerIndex = player.POS;
+        return killed;
     }
     private resetPlayerCoin(pawnPos: number): any {
         const currentPlayer = this.getCurrentPlayer();
         const coins = this.getAllCoinsAtPosition(pawnPos, true);
-
-        // If a position has more than 2 pawns of any player then the position is safe
-        if (coins.length > 2) {
-            this.log('Pawn kill safe due to more than 2 pawns');
+        //If a position has more than 2 pawns of any player then the position is safe
+        if (coins.length == 2) {
+            this.log('Pawn kill safe due to there is no snake head');
             return
         }
         const doublingTokens = this.checkDoubling(pawnPos);
@@ -635,7 +665,7 @@ export class Game extends Table {
             (coin) => coin.playerId !== currentPlayer.ID
         );
         if (enemyPlayer) {
-            const player = this.players.find((x) => x.ID === enemyPlayer.playerId);
+            const player = this.players.find((x) => x.ID === enemyPlayer.ID);
             if (doublingTokens.has(player.POS) && doublingTokens.get(player.POS) >= 2) {
                 console.log("\n This token is safe !!!!!", player.POS);
                 return;
@@ -669,6 +699,14 @@ export class Game extends Table {
     private canAttack(pawnPos: number): any {
         const coins = this.getAllCoinsAtPosition(pawnPos);
         return coins.length === 1;
+    }
+    private killedBySnake(pawnPos: number): any {
+        if(this.SnakeHead.includes(pawnPos)){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
     private currentTurnPlayer(playerId: string): Player {
         console.log("\n currentTurnPlayer Turn of ", this.turnIndex);
@@ -880,6 +918,42 @@ export class Game extends Table {
                     p.pawnPosition = pawnPosition;
                     p.pawnIndex = pawnIndex;
                     arr.push(p);
+                }
+            });
+        });
+        console.log("arr", arr);
+        return arr;
+    }
+    public getSnakePostion(position: number, includeCurrentPlayer = false): Array<any> {
+        let arr: any = [];
+        this.players.forEach((player, playerIndex) => {
+            if (!player.isPlaying) {
+                return
+            }
+            const p: any = {
+                playerPos: player.POS,
+                playerId: player.ID 
+            };
+            console.log("check kill at position ", position);
+            console.log("playerindex ");
+            player.getPawnStack().forEach((pawnPosition, pawnIndex) => {
+                if (pawnPosition == position && position != WINNING_POSITION) {
+                    if (!includeCurrentPlayer && this.getCurrentPlayer().ID == player.ID) {
+                        return
+                    }
+                    let getSnakeIndex = this.SnakeHead.indexOf(position)
+
+                    if(getSnakeIndex != -1){
+                        console.log("Snake is present at position "+getSnakeIndex)
+                        console.log("found pawnPosition ", pawnPosition);
+                        console.log("found pawnIndex ", pawnIndex);
+                        p.pawnPosition = pawnPosition;
+                        p.pawnIndex = pawnIndex;
+                        p.snakeTail = this.SnakeTail[getSnakeIndex]; 
+                        p.snakeHead = this.SnakeHead[getSnakeIndex];
+                        arr.push(p);
+                    }
+                    
                 }
             });
         });

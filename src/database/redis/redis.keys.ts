@@ -62,4 +62,8 @@ export class RedisKeys{
         return `${this.NODE_ENV}:game:${gameId}`;
     }
 
+    public static getGameBoard(boardId:number=1){
+        return `${this.NODE_ENV}:BoardTable:${boardId}`;
+    }
+
 }

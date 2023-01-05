@@ -149,4 +149,6 @@ export class ContestMethod {
             throw err
         }
     }
+    
+    
 }
