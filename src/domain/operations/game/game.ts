@@ -173,7 +173,7 @@ export class Game extends Table {
                         players: this.players.map(p => p.playerInfo),
                         state: this.state,
                         turnIndex: this.turnIndex,
-                        rolledValues: diceValues,
+                        rolledValues: [5],
                         // rollTime: this.rollTime,
                         // moveTime: this.moveTime,
                         turnTime: this.turnTime,
