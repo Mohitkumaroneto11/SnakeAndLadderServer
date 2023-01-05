@@ -615,8 +615,8 @@ export class Game extends Table {
         if (this.canAttack(position)) {
             console.log("\n can attack now ");
             // Update kill only when dryRun is false;
-            return dryRun ? true : this.resetPlayerCoin(position);
-            // return true;
+            //return dryRun ? true : this.resetPlayerCoin(position);
+            return false;
         }
         return false;
     }
