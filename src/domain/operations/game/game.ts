@@ -173,7 +173,7 @@ export class Game extends Table {
                         players: this.players.map(p => p.playerInfo),
                         state: this.state,
                         turnIndex: this.turnIndex,
-                        rolledValues: [5],
+                        rolledValues: diceValues,
                         // rollTime: this.rollTime,
                         // moveTime: this.moveTime,
                         turnTime: this.turnTime,
@@ -503,7 +503,14 @@ export class Game extends Table {
             const resp = await this.updatePlayerCoinPosition(pawnIndex, diceValue);
             console.log('New coin position', resp)
             if (resp && resp.coinEliminated) {
-                currentPlayer.updateHasKilled();
+                //check snake or ladder
+                if(resp.coinEliminated.switchSnakeOrLadder){
+                    currentPlayer.updateHasKilled();
+                }
+                else{
+
+                    currentPlayer.updateHasLadder();
+                }
                 return resp;
             }
             return true;
@@ -519,10 +526,10 @@ export class Game extends Table {
             return false;
         }
     }
-    public updateHasKilled() {
-        console.log("\n \n Hash Killed oppnent .......", this.ID);
-        this.hasKilled = true;
-    }
+    // public updateHasKilled() {
+    //     console.log("\n \n Hash Killed oppnent .......", this.ID);
+    //     this.hasKilled = true;
+    // }
     private async updatePlayerCoinPosition(pawnIndex: number, diceValue: number) {
         console.log("\n updatePlayerCoinPosition position ", pawnIndex, diceValue);
         const currentPlayer = this.getCurrentPlayer();
@@ -636,17 +643,25 @@ export class Game extends Table {
     }
     private resetPlayerCoinSnake(pawnPos: number): any {
         const currentPlayer = this.getCurrentPlayer();
-        const SnakePos = this.getSnakePostion(pawnPos,true)
-        if(SnakePos.length == 0){
+        const SnakeAndLadderPos = this.getSnakePostion(pawnPos,true)
+        if(SnakeAndLadderPos.length == 0){
             return;
         }
         const player = this.players.find((x) => x.ID === currentPlayer.ID);
         const killed: any = {
             pawnIndex: pawnPos,
-            playerIndex: 1
+            playerIndex: 1,
+            switchSnakeOrLadder:true
         }
-        killed.pawnIndex = player.eliminateCoinBySnake(pawnPos,SnakePos[0].snakeTail);
+        if(SnakeAndLadderPos[0].switchSnakeOrLadder){
+            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderPos[0].snakeTail);
+        }
+        if(!SnakeAndLadderPos[0].switchSnakeOrLadder){
+            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderPos[0].ladderHead);
+        }
         killed.playerIndex = player.POS;
+        killed.switchSnakeOrLadder = SnakeAndLadderPos[0].switchSnakeOrLadder
+
         return killed;
     }
     private resetPlayerCoin(pawnPos: number): any {
@@ -940,6 +955,7 @@ export class Game extends Table {
                         return
                     }
                     let getSnakeIndex = this.SnakeHead.indexOf(position)
+                    let getLadderIndex = this.LadderTail.indexOf(position)
 
                     if(getSnakeIndex != -1){
                         console.log("Snake is present at position "+getSnakeIndex)
@@ -949,6 +965,18 @@ export class Game extends Table {
                         p.pawnIndex = pawnIndex;
                         p.snakeTail = this.SnakeTail[getSnakeIndex]; 
                         p.snakeHead = this.SnakeHead[getSnakeIndex];
+                        p.switchSnakeOrLadder = true
+                        arr.push(p);
+                    }
+                    if(getLadderIndex != -1){
+                        console.log("Ladder is present at position "+getLadderIndex)
+                        console.log("found pawnPosition ", pawnPosition);
+                        console.log("found pawnIndex ", pawnIndex);
+                        p.pawnPosition = pawnPosition;
+                        p.pawnIndex = pawnIndex;
+                        p.ladderTail = this.LadderTail[getLadderIndex]; 
+                        p.ladderHead = this.LadderHead[getLadderIndex];
+                        p.switchSnakeOrLadder = false
                         arr.push(p);
                     }
                     

@@ -12,7 +12,7 @@ export class Player {
     private color: number
     private pos: number
     private sixers: number
-    
+    private hasLadder:boolean
     private pawnStack: Array<number>
     private state: number
     private hasKilled: boolean
@@ -61,6 +61,7 @@ export class Player {
         this.pawnStack = opts.pawnStack;
         this.state = opts.state;
         this.hasKilled = opts.hasKilled;
+        this.hasLadder = opts.hasLadder;
         this.score = opts.score;
         this.rank = opts.rank;
         this.skip = opts.skip;
@@ -85,6 +86,7 @@ export class Player {
             pawnStack: this.pawnStack,
             state: this.state,
             hasKilled: this.hasKilled,
+            hasLadder:this.hasLadder,
             skip: this.skip,
             score: this.SCORE,
             rank: this.rank,
@@ -140,6 +142,7 @@ export class Player {
             pawnStack: this.pawnStack,
             state: this.state,
             hasKilled: this.hasKilled,
+            hasLadder: this.hasLadder,
             skip: this.skip,
             score: this.SCORE,
             rank: this.rank,
@@ -358,7 +361,7 @@ export class Player {
             }
         }
     }
-    public eliminateCoinBySnake(pawnPos: number,snakeTail:number): number {
+    public eliminateCoinBySnakeAndLadder(pawnPos: number,snakeTail:number): number {
         for (let i = 0; i < this.pawnStack.length; i++) {
             if (this.pawnStack[i] == pawnPos) {
                 this.pawnStack[i] = snakeTail;
@@ -366,5 +369,10 @@ export class Player {
             }
         }
     }
+    public updateHasLadder() {
+        console.log("\n \n Hash ladder oppnent .......", this.ID);
+        this.hasLadder = true;
+    }
+    
     
 }
