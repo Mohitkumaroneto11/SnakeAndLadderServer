@@ -433,16 +433,14 @@ export class Game extends Table {
                             pawnIndex: pawnIndex,
                             diceValue: diceValue
                         },
-                        // kill: {
-                        //     // killer: {
-                        //     //     pawnIndex: pawnIndex,
-                        //     //     playerIndex: this.currentPlayer(currentTurn).POS
-                        //     // },
-                        //     killed: isValid.coinEliminated
-                        // }
-                        snake: {
+                        kill: {
+                            // killer: {
+                            //     pawnIndex: pawnIndex,
+                            //     playerIndex: this.currentPlayer(currentTurn).POS
+                            // },
                             killed: isValid.coinEliminated
                         }
+                        
                     };
                     return resp;
                 }
