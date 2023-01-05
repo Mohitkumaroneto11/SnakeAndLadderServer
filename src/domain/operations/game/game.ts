@@ -689,9 +689,9 @@ export class Game extends Table {
         for (let i = 0; i < n; i++){
             let randomPercent = Math.ceil(Math.random() * 100);
             if (randomPercent > weightage) {
-                randomArray.push(Math.floor(Math.random() * (6 - 4 + 1) + 4))
+                randomArray.push(Math.floor(Math.random() * (5 - 4 + 1) + 4))
             } else {
-                randomArray.push(Math.ceil(Math.random() * 6))
+                randomArray.push(Math.ceil(Math.random() * 5))
             }
         }
         return randomArray;
