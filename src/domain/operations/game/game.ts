@@ -308,7 +308,7 @@ export class Game extends Table {
             throw error;
         }
         const resp = await this.changeCurrentPlayerCoinPosition(playerId, pawnIndex, rolledIndex);
-        console.log('Resp after pawn move', resp)
+        this.log('Resp after pawn move', resp)
 
 
         // This insure last player get his chance complete(On 6,pawn kill, reach home).
@@ -572,6 +572,8 @@ export class Game extends Table {
         const updatedPosition = currentPlayer.getPawnPosition(pawnIndex);
         console.log("\n updated position ", updatedPosition);
         console.log("\n updated finish game ", playerGameFinish);
+        this.log(this.ID," Updated position ", updatedPosition)
+        this.log(this.ID," Updated finish game ", playerGameFinish);
         const coinEliminated = this.eliminateCoin(updatedPosition);
         const reachedHome = this.isCoinReachedHome(pawnIndex);
         console.log("\n updated coin eliminated ", coinEliminated);
