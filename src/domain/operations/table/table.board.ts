@@ -12,7 +12,7 @@ export class Board {
     
     constructor(){
         this.redis = RedisStorage.Instance;
-        this.SnakeHead = [20,26]
+        this.SnakeHead = [21,26]
         this.SnakeTail = [2,13]
         this.LadderHead = [23,14]
         this.LadderTail = [12,3]
