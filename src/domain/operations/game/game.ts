@@ -416,32 +416,65 @@ export class Game extends Table {
             if (isValid) {
                 console.log('Is valid move', isValid)
                 if (isValid.coinEliminated) {
-                    //currentPlayer.sixCounter(false);
-                    const resp: any = {
-                        changeTurn: false,
-                        phase: this.phase,
-                        players: this.players.map(p => p.playerInfo),
-                        state: this.state,
-                        turnIndex: this.turnIndex,
-                        rolledValues: previousRolledValues,
-                        // rollTime: this.rollTime,
-                        // moveTime: this.moveTime,
-                        turnTime: this.turnTime,
-                        move: {
-                            isValid: isValid,
-                            playerPos: currentTurn,
-                            pawnIndex: pawnIndex,
-                            diceValue: diceValue
-                        },
-                        kill: {
-                            // killer: {
-                            //     pawnIndex: pawnIndex,
-                            //     playerIndex: this.currentPlayer(currentTurn).POS
-                            // },
-                            killed: isValid.coinEliminated
-                        }
-                        
-                    };
+                    let resp: any={};
+                    if(isValid.coinEliminated.switchSnakeOrLadder){
+                        //for snake response
+                        resp = {
+                            changeTurn: false,
+                            phase: this.phase,
+                            players: this.players.map(p => p.playerInfo),
+                            state: this.state,
+                            turnIndex: this.turnIndex,
+                            rolledValues: previousRolledValues,
+                            // rollTime: this.rollTime,
+                            // moveTime: this.moveTime,
+                            turnTime: this.turnTime,
+                            move: {
+                                isValid: isValid,
+                                playerPos: currentTurn,
+                                pawnIndex: pawnIndex,
+                                diceValue: diceValue
+                            },
+                            kill: {
+                                // killer: {
+                                //     pawnIndex: pawnIndex,
+                                //     playerIndex: this.currentPlayer(currentTurn).POS
+                                // },
+                                killed: isValid.coinEliminated
+                            }
+                            
+                        };
+                    }
+                    else{
+                        //for ladder response
+                        resp = {
+                            changeTurn: false,
+                            phase: this.phase,
+                            players: this.players.map(p => p.playerInfo),
+                            state: this.state,
+                            turnIndex: this.turnIndex,
+                            rolledValues: previousRolledValues,
+                            // rollTime: this.rollTime,
+                            // moveTime: this.moveTime,
+                            turnTime: this.turnTime,
+                            move: {
+                                isValid: isValid,
+                                playerPos: currentTurn,
+                                pawnIndex: pawnIndex,
+                                diceValue: diceValue
+                            },
+                            ladder: {
+                                // killer: {
+                                //     pawnIndex: pawnIndex,
+                                //     playerIndex: this.currentPlayer(currentTurn).POS
+                                // },
+                                up: isValid.coinEliminated
+                            }
+                            
+                        };
+                    }
+                    
+                    
                     return resp;
                 }
                 else {
