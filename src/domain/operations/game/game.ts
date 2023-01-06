@@ -660,7 +660,7 @@ export class Game extends Table {
         }
         killed.playerIndex = player.POS;
         killed.switchSnakeOrLadder = SnakeAndLadderPos[0].switchSnakeOrLadder
-
+        this.log(this.ID,"pawn killed and position upadte by ",killed)
         return killed;
     }
     private resetPlayerCoin(pawnPos: number): any {
@@ -713,7 +713,7 @@ export class Game extends Table {
         return coins.length === 1;
     }
     private killedBySnake(pawnPos: number): any {
-        if(this.SnakeHead.includes(pawnPos)){
+        if(this.SnakeHead.includes(pawnPos)||this.LadderTail.includes(pawnPos)){
             return true;
         }
         else{
