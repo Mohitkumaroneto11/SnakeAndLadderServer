@@ -418,6 +418,7 @@ export class Game extends Table {
             if (isValid) {
                 console.log('Is valid move', isValid)
                 if (isValid.coinEliminated) {
+                    this.changeTurn();
                     let resp: any={};
                     if(isValid.coinEliminated.switchSnakeOrLadder){
                         //for snake response
