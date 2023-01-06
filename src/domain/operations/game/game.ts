@@ -74,6 +74,8 @@ export class Game extends Table {
         this.players = opts.players ? opts.players.map((p: any) => { const player = new Player(p); return player; }): []
         this.gameId = 1;
         this.BoardId=1;
+        let make = Board.Instance.getBoardTableRedis(1)
+        console.log("Board is coming from redis "+make)
         this.SnakeHead = Board.Instance.SnakeHead;
         this.SnakeTail = Board.Instance.SnakeTail;
         this.LadderHead = Board.Instance.LadderHead;
