@@ -508,7 +508,6 @@ export class Game extends Table {
                     currentPlayer.updateHasKilled();
                 }
                 else{
-
                     currentPlayer.updateHasLadder();
                 }
                 return resp;
@@ -804,7 +803,7 @@ export class Game extends Table {
             // moveTime: this.moveTime,
             turnTime: this.turnTime,
             skip: {
-                //turnIndex: currentPlayer.POS,
+                turnIndex: currentPlayer.POS,
                 reason: TURN_SKIP_REASON.TURN_TIMEOUT
             },
             gameMode: this.gameMode,
