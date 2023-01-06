@@ -39,7 +39,8 @@ export class Player {
         this.pos = opts.pos;
         this.initPosition = opts.pos != undefined ? PLAYER_PATH[opts.pos][0] : undefined;
         this.pawnStack = opts.pos != undefined ? [this.initPosition, this.initPosition] : [];
-        
+        this.hasLadder=false;
+        this.hasKilled=false;
         this.state = PlayerState.WAITING;
         this.score = 0;
         this.rank = -1;
