@@ -481,7 +481,7 @@ export class Game extends Table {
                     return resp;
                 }
                 else {
-                    // this.changeTurn();
+                    this.changeTurn();
                     const resp: any = {
                         changeTurn: true,
                         phase: this.phase,
