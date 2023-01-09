@@ -603,7 +603,7 @@ export class Game extends Table {
                         turnTime: this.turnTime,
                     }
                     const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
-                    // GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "gameEnd", httpResp);
+                    GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "gameEnd", httpResp);
                     this.onGameEnd();
                 }
             } else {
