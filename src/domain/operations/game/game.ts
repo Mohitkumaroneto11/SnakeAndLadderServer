@@ -635,13 +635,13 @@ export class Game extends Table {
     }
     private async canEndGameOnPlayerReachingHome(): Promise<boolean> {
         this.log(`Checking game can end on player reaching home?`, this.noOfContestWinner, this.noPlayerReachHome, this.canEndTheGame());
-        if (this.capacity == 4) {
-            if (this.noOfContestWinner != this.noPlayerReachHome && !this.canEndTheGame()) {
-                this.log(`No game cannot end`);
-                return false
-            }
-            this.log(`no of player reach home ${this.noPlayerReachHome} No of winner ${this.noOfContestWinner}`)
-        }
+        // if (this.capacity == 2) {
+        //     if (this.noOfContestWinner != this.noPlayerReachHome && !this.canEndTheGame()) {
+        //         this.log(`No game cannot end`);
+        //         return false
+        //     }
+        //     this.log(`no of player reach home ${this.noPlayerReachHome} No of winner ${this.noOfContestWinner}`)
+        // }
         this.log(`Yes game can end`);
         return true;
     }
