@@ -1269,7 +1269,11 @@ export class Game extends Table {
                 gameStartTime: this.gameStartTime,
                 gameStartIn: DELAY_IN_GAME_START - DELAY_IN_PRE_GAME_START,
                 gameTurnRemaining: this.gameTurnRemaining,
-                turnTime: TURN_TIME
+                turnTime: TURN_TIME,
+                SnakeHead:this.SnakeHead,
+                SnakeTail:this.SnakeTail,
+                LadderHead:this.LadderHead,
+                LadderTail:this.LadderTail
             };
             this.sendLogInMongo('startGame');
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
