@@ -2,7 +2,7 @@ import { gameLog } from 'utils/logger'
 import { Table } from '../table/table';
 import { Player } from '../player/player';
 import { PlayerOpts, PlayerState } from 'domain/entities/player/player.model';
-import { WINNING_POSITION } from '../../entities/game/game.model'
+import { WINNING_POSITION,SwitchSnakeOrLadderOrPower } from '../../entities/game/game.model'
 import { ContestData, GameConfig,TURN_SKIP_REASON, GameState, GamePhase,GameLevel, GameWinningData, JoinContestResponse,GameMode,GameType,ExitReason } from 'domain/entities/game/game.model';
 import { BaseHttpResponse } from 'utils';
 import { GameServer } from 'application';
@@ -48,8 +48,10 @@ export class Game extends Table {
     private LadderHead: Array<number>;
     private LadderTail: Array<number>;
     private BoardId:number
-    
+    private PowerCard:Array<number>;
+    private PowerCan:Array<number>
     private isOnGameEndCallbackCalled: boolean
+    private previousRollDice:Array<number>;
     public constructor(opts: any) {
         super(opts);
         this.lastTurnTimeMilli = 0;
@@ -80,6 +82,9 @@ export class Game extends Table {
         this.SnakeTail = Board.Instance.SnakeTail;
         this.LadderHead = Board.Instance.LadderHead;
         this.LadderTail = Board.Instance.LadderTail;
+        this.PowerCard = Board.Instance.PowerCard;
+        this.PowerCan = Board.Instance.PowerCan;
+        this.previousRollDice=[0]
 
     }
     public initTableOnRestart(opts: any) {
@@ -89,7 +94,6 @@ export class Game extends Table {
         this.state = opts.state;
         this.isFull = opts.isFull;
         this.turnIndex = opts.turnIndex;
-
         this.lastTurnTimeMilli = opts.lastTurnTimeMilli;
         this.phase = opts.phase;
         this.rolledValues = this.phase == GamePhase.MOVE_PAWN ? [opts.diceValue] : [];
@@ -111,6 +115,7 @@ export class Game extends Table {
         this.gameTurnRemaining = opts.gameTurnRemaining
         this.totalTurn = opts.totalTurn
         this.xFacLogId = opts.xFacLogId
+        this.previousRollDice = opts.previousRollDice
         gameLog('common', 'Game state reload=>', this);
         this.reStartGameCountDown();
         this.restartTurnTimeout();
@@ -331,6 +336,37 @@ export class Game extends Table {
         await this.gameSync()
         return httpResp;
     }
+    public async onPowerCard(playerId: string, pawnIndex: number, powerIndex: number) {
+        const currentPlayer = this.getCurrentPlayer();
+        if (currentPlayer.ID != playerId) {
+            const error = new BaseHttpResponse(null, "Invalid User" + currentPlayer.ID, 400, this.ID);
+            throw error;
+        }
+        //give Power to player
+        const resp = await this.usePowerCard(playerId, pawnIndex, powerIndex);
+        this.log('Resp after pawn move', resp)
+
+
+        // This insure last player get his chance complete(On 6,pawn kill, reach home).
+        let nextPlayerId = this.getCurrentPlayer().ID
+        if (resp?.changeTurn == true && playerId != nextPlayerId) {
+            console.log('Change turn while move pawn')
+            // const gameOver = await this.checkGameTimeOverCondition(playerId);
+            // if (gameOver) {
+            //     resp.state = this.state
+            //     this.log('Gamze over while move pawn')
+            //     // return httpResp;
+            // }
+        }
+        const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
+        this.log('move pawn resp=>', httpResp);
+        resp.gameMode = this.gameMode;
+        resp.gameTurnRemaining = this.gameTurnRemaining
+        GameServer.Instance.socketServer.emitToSocketRoom(this.ID, "movePawn", httpResp);
+        this.sendLogInMongo('onMovePawn');
+        await this.gameSync()
+        return httpResp;
+    }
     private async changeCurrentPlayerCoinPosition(playerId: string, pawnIndex: number, rolledIndex: number = 0) {
         console.log("pawnIndex ", pawnIndex);
         console.log("rolledIndex ", rolledIndex);
@@ -355,9 +391,216 @@ export class Game extends Table {
         }
         let diceValue;
         const previousRolledValues = [...this.rolledValues];
+        this.previousRollDice = previousRolledValues;
         const newRolledValues = [];
         for (let i = 0; i < this.rolledValues.length; i++) {
             if (i == rolledIndex) {
+                diceValue = this.rolledValues[i];
+            }
+            else {
+                newRolledValues.push(this.rolledValues[i]);
+            }
+        }
+        this.rolledValues = newRolledValues;
+        // const diceValue = this.rolledValues[rolledIndex];
+        console.log("diceValue", diceValue);
+        const currentTurn = this.turnIndex;
+        console.log("currentTurn ", currentTurn);
+        const currentPlayer: Player = this.getCurrentPlayer();
+        // @Puneet
+        // currentPlayer.skipped(false);
+        // END
+        // invalid diceValue, change turn and shift
+        if (!diceValue) {
+            currentPlayer.sixCounter(false);
+
+            this.changeTurn();
+            this.log(`Change turn in movePawn due to invalid dice vaalue`, diceValue)
+            const resp = {
+                changeTurn: true,
+                phase: this.phase,
+                players: this.players.map(p => p.playerInfo),
+                state: this.state,
+                turnIndex: this.turnIndex,
+                rolledValues: previousRolledValues,
+                // rollTime: this.rollTime,
+                // moveTime: this.moveTime,
+                turnTime: this.turnTime,
+            }
+            this.log(`Change turn called in changeCoinPosition of player - ${currentPlayer.ID}`, resp)
+            return resp;
+        }
+        else {
+            const isValid = await this.validateCoinPosition(playerId, pawnIndex, diceValue);
+            if (isValid) {
+                console.log('Is valid move', isValid)
+                if (isValid.coinEliminated) {
+                    this.changeTurn();
+                    let resp: any={};
+                    if(isValid.coinEliminated.switchSnakeOrLadderOrPower == SwitchSnakeOrLadderOrPower.SNAKE){
+                        //for snake response
+                        resp = {
+                            changeTurn: false,
+                            phase: this.phase,
+                            players: this.players.map(p => p.playerInfo),
+                            state: this.state,
+                            turnIndex: this.turnIndex,
+                            rolledValues: previousRolledValues,
+                            // rollTime: this.rollTime,
+                            // moveTime: this.moveTime,
+                            turnTime: this.turnTime,
+                            move: {
+                                isValid: isValid,
+                                playerPos: currentTurn,
+                                pawnIndex: pawnIndex,
+                                diceValue: diceValue
+                            },
+                            kill: {
+                                // killer: {
+                                //     pawnIndex: pawnIndex,
+                                //     playerIndex: this.currentPlayer(currentTurn).POS
+                                // },
+                                killed: isValid.coinEliminated
+                            }
+                            
+                        };
+                    }
+                    else if(isValid.coinEliminated.switchSnakeOrLadderOrPower == SwitchSnakeOrLadderOrPower.LADDER){
+                        resp = {
+                            changeTurn: false,
+                            phase: this.phase,
+                            players: this.players.map(p => p.playerInfo),
+                            state: this.state,
+                            turnIndex: this.turnIndex,
+                            rolledValues: previousRolledValues,
+                            // rollTime: this.rollTime,
+                            // moveTime: this.moveTime,
+                            turnTime: this.turnTime,
+                            move: {
+                                isValid: isValid,
+                                playerPos: currentTurn,
+                                pawnIndex: pawnIndex,
+                                diceValue: diceValue
+                            },
+                            ladder: {
+                                // killer: {
+                                //     pawnIndex: pawnIndex,
+                                //     playerIndex: this.currentPlayer(currentTurn).POS
+                                // },
+                                up: isValid.coinEliminated
+                            }
+                            
+                        };
+                    }
+                    else{
+                        //for Power response
+                        resp = {
+                            changeTurn: false,
+                            phase: this.phase,
+                            players: this.players.map(p => p.playerInfo),
+                            state: this.state,
+                            turnIndex: this.turnIndex,
+                            rolledValues: previousRolledValues,
+                            // rollTime: this.rollTime,
+                            // moveTime: this.moveTime,
+                            turnTime: this.turnTime,
+                            move: {
+                                isValid: isValid,
+                                playerPos: currentTurn,
+                                pawnIndex: pawnIndex,
+                                diceValue: diceValue
+                            },
+                            power: {
+                                // killer: {
+                                //     pawnIndex: pawnIndex,
+                                //     playerIndex: this.currentPlayer(currentTurn).POS
+                                // },
+                                powerup: isValid.coinEliminated
+                            },
+                            powerStack:currentPlayer.getPowerStack
+                            
+                        };
+                    }
+                    
+                    
+                    return resp;
+                }
+                else {
+                    //this.changeTurn();
+                    const resp: any = {
+                        changeTurn: true,
+                        phase: this.phase,
+                        players: this.players.map(p => p.playerInfo),
+                        state: this.state,
+                        turnIndex: this.turnIndex,
+                        rolledValues: previousRolledValues,
+                        // rollTime: this.rollTime,
+                        // moveTime: this.moveTime,
+                        turnTime: this.turnTime,
+                        move: {
+                            isValid: isValid,
+                            playerPos: currentTurn,
+                            pawnIndex: pawnIndex,
+                            diceValue: diceValue
+                        },
+                    };
+                    console.log('Return resp', resp)
+                    return resp;
+                }
+            }
+            else {
+                // this.changeTurn();
+                this.rolledValues = previousRolledValues;
+                const resp: any = {
+                    changeTurn: true,
+                    phase: this.phase,
+                    players: this.players.map(p => p.playerInfo),
+                    state: this.state,
+                    turnIndex: this.turnIndex,
+                    rolledValues: previousRolledValues,
+                    // rollTime: this.rollTime,
+                    // moveTime: this.moveTime,
+                    turnTime: this.turnTime,
+                    move: {
+                        isValid: isValid,
+                        playerPos: currentTurn,
+                        pawnIndex: pawnIndex,
+                        diceValue: diceValue
+                    },
+                };
+                return resp;
+            }
+        }
+
+    }
+    private async usePowerCard(playerId: string, pawnIndex: number, powerIndex: number = 0) {
+        console.log("pawnIndex ", pawnIndex);
+        console.log("rolledIndex ", powerIndex);
+        if (this.state !== GameState.RUNNING) {
+            // In case of extra hit!.
+            const resp = {
+                changeTurn: true,
+                phase: this.phase,
+                players: this.players.map(p => p.playerInfo),
+                state: this.state,
+                turnIndex: this.turnIndex,
+                rolledValues: this.rolledValues,
+                // rollTime: this.rollTime,
+                // moveTime: this.moveTime,
+                turnTime: this.turnTime
+            }
+            return resp;
+        };
+        if (this.phase != GamePhase.MOVE_PAWN) {
+            const error = new BaseHttpResponse(null, "Invalid Phase while moving - ph - " + this.phase, 400, this.ID);
+            throw error;
+        }
+        let diceValue;
+        const previousRolledValues = [...this.rolledValues];
+        this.previousRollDice = previousRolledValues;
+        const newRolledValues = [];
+        for (let i = 0; i < this.rolledValues.length; i++) {
+            if (i == powerIndex) {
                 diceValue = this.rolledValues[i];
             }
             else {
@@ -540,8 +783,11 @@ export class Game extends Table {
             console.log('New coin position', resp)
             if (resp && resp.coinEliminated) {
                 //check snake or ladder
-                if(resp.coinEliminated.switchSnakeOrLadder){
+                if(resp.coinEliminated.switchSnakeOrLadder == SwitchSnakeOrLadderOrPower.SNAKE){
                     currentPlayer.updateHasKilled();
+                }
+                else if(resp.coinEliminated.switchSnakeOrLadder == SwitchSnakeOrLadderOrPower.LADDER){
+                    currentPlayer.updateHasLadder();
                 }
                 else{
                     currentPlayer.updateHasLadder();
@@ -669,8 +915,8 @@ export class Game extends Table {
         //     console.log("cant eliminate as its s safe cell");
         //     return false;
         // }
-        if (this.killedBySnake(position)) {
-            console.log("\n can killed now ");
+        if (this.killedBySnakeOrPower(position)) {
+            console.log("\n player pawn mat with snake, ladder or the power card now ");
             // Update kill only when dryRun is false;
             //return dryRun ? true : this.resetPlayerCoin(position);
             return dryRun ? true : this.resetPlayerCoinSnake(position);
@@ -680,26 +926,32 @@ export class Game extends Table {
     }
     private resetPlayerCoinSnake(pawnPos: number): any {
         const currentPlayer = this.getCurrentPlayer();
-        const SnakeAndLadderPos = this.getSnakePostion(pawnPos,true)
-        if(SnakeAndLadderPos.length == 0){
+        const SnakeAndLadderAndPower = this.getSnakePostion(pawnPos,true)
+        if(SnakeAndLadderAndPower.length == 0){
             return;
         }
         const player = this.players.find((x) => x.ID === currentPlayer.ID);
         const killed: any = {
             pawnIndex: pawnPos,
             playerIndex: 1,
-            switchSnakeOrLadder:true
+            switchSnakeOrLadderOrPower:1
         }
-        if(SnakeAndLadderPos[0].switchSnakeOrLadder){
-            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderPos[0].snakeTail);
+        if(SnakeAndLadderAndPower[0].switchSnakeOrLadderOrPower == SwitchSnakeOrLadderOrPower.SNAKE){
+            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderAndPower[0].snakeTail);
         }
-        if(!SnakeAndLadderPos[0].switchSnakeOrLadder){
-            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderPos[0].ladderHead);
+        if(SnakeAndLadderAndPower[0].switchSnakeOrLadderOrPower == SwitchSnakeOrLadderOrPower.LADDER){
+            killed.pawnIndex = player.eliminateCoinBySnakeAndLadder(pawnPos,SnakeAndLadderAndPower[0].ladderHead);
+        }
+        if(SnakeAndLadderAndPower[0].switchSnakeOrLadderOrPower == SwitchSnakeOrLadderOrPower.POWER){
+            killed.pawnIndex = player.updatePowerStack(pawnPos,this.getPowerCard(pawnPos));
         }
         killed.playerIndex = player.POS;
-        killed.switchSnakeOrLadder = SnakeAndLadderPos[0].switchSnakeOrLadder
+        killed.switchSnakeOrLadderOrPower = SnakeAndLadderAndPower[0].switchSnakeOrLadderOrPower
         this.log(this.ID,"pawn killed and position upadte by ",killed)
         return killed;
+    }
+    private getPowerCard(pawnPos:number){
+        return this.PowerCan[pawnPos]
     }
     private resetPlayerCoin(pawnPos: number): any {
         const currentPlayer = this.getCurrentPlayer();
@@ -750,8 +1002,8 @@ export class Game extends Table {
         const coins = this.getAllCoinsAtPosition(pawnPos);
         return coins.length === 1;
     }
-    private killedBySnake(pawnPos: number): any {
-        if(this.SnakeHead.includes(pawnPos)||this.LadderTail.includes(pawnPos)){
+    private killedBySnakeOrPower(pawnPos: number): any {
+        if(this.SnakeHead.includes(pawnPos)||this.LadderTail.includes(pawnPos)||this.PowerCard.includes(pawnPos)){
             return true;
         }
         else{
@@ -995,7 +1247,7 @@ export class Game extends Table {
                     }
                     let getSnakeIndex = this.SnakeHead.indexOf(position)
                     let getLadderIndex = this.LadderTail.indexOf(position)
-
+                    let getPowerCard = this.PowerCard.indexOf(position)
                     if(getSnakeIndex != -1){
                         console.log("Snake is present at position "+getSnakeIndex)
                         console.log("found pawnPosition ", pawnPosition);
@@ -1004,7 +1256,7 @@ export class Game extends Table {
                         p.pawnIndex = pawnIndex;
                         p.snakeTail = this.SnakeTail[getSnakeIndex]; 
                         p.snakeHead = this.SnakeHead[getSnakeIndex];
-                        p.switchSnakeOrLadder = true
+                        p.switchSnakeOrLadderOrPower = SwitchSnakeOrLadderOrPower.SNAKE
                         arr.push(p);
                     }
                     if(getLadderIndex != -1){
@@ -1015,10 +1267,19 @@ export class Game extends Table {
                         p.pawnIndex = pawnIndex;
                         p.ladderTail = this.LadderTail[getLadderIndex]; 
                         p.ladderHead = this.LadderHead[getLadderIndex];
-                        p.switchSnakeOrLadder = false
+                        p.switchSnakeOrLadderOrPower = SwitchSnakeOrLadderOrPower.LADDER
                         arr.push(p);
                     }
-                    
+                    if(getPowerCard != -1){
+                        console.log("Power is present at position "+getPowerCard)
+                        console.log("found pawnPosition ", pawnPosition);
+                        console.log("found pawnIndex ", pawnIndex);
+                        p.pawnPosition = pawnPosition;
+                        p.pawnIndex = pawnIndex;
+                        p.powerCard = this.getPowerCard(pawnPosition); 
+                        p.switchSnakeOrLadderOrPower = SwitchSnakeOrLadderOrPower.POWER
+                        arr.push(p);
+                    }
                 }
             });
         });
@@ -1279,6 +1540,7 @@ export class Game extends Table {
             const httpResp = new BaseHttpResponse(resp, null, 200, this.ID);
             this.log('Sending startGame event ', httpResp);
             console.log("=======startGame Event========")
+            console.log(resp)
             this.emit(httpResp, 'startGame')
             this.players.forEach(player=>{
                 if(player.isXFac){

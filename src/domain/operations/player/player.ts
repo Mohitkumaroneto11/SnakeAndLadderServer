@@ -16,6 +16,7 @@ export class Player {
     private pawnStack: Array<number>
     private state: number
     private hasKilled: boolean
+    private hasPower: number
     private score: number
     private rank: number
     private skip: number
@@ -28,6 +29,7 @@ export class Player {
     private playerType: PlayerType;
     public xfac: XFacAbstract;
     private dvStack: Array<number>;
+    private Powerstack: Array<number>;
     constructor(opts: PlayerOpts) {
         console.log("Player opts ", opts);
         this.userId = opts._id;
@@ -49,6 +51,8 @@ export class Player {
         this.playerType = opts.playerType ? opts.playerType : PlayerType.HUMAN;
         this.xfac = opts.xfac;
         this.dvStack = [];
+        this.Powerstack = []; 
+        this.hasPower=0;
         console.log("Position ", this.pos);
         console.log("Paws stack for pos ", this.pos);
         console.log("Paws stack : ", this.pawnStack);
@@ -68,6 +72,7 @@ export class Player {
         this.skip = opts.skip;
         this.mid = opts.mid;
         this.did = opts.did;
+        this.hasPower = opts.hasPower
         this.referCode = opts.referCode
         this.totalGameWinner = opts.totalGameWinner;
         this.playerType = opts.playerType || PlayerType.HUMAN
@@ -76,6 +81,7 @@ export class Player {
             this.xfac = XFacManager.getXFac(game);
             this.xfac.initOnRestart();
         }
+        this.Powerstack = opts.Powerstack;
     }
     
     public playerProperties(): any {
@@ -96,7 +102,9 @@ export class Player {
             did: this.did,
             totalGameWinner: this.totalGameWinner,
             playerType: this.playerType,
-            prize: this.prize
+            prize: this.prize,
+            Powerstack:this.Powerstack,
+            hasPower:this.hasPower
 
         }
         // return JSON.stringify(resp);
@@ -151,7 +159,9 @@ export class Player {
             did: this.did,
             referCode: this.referCode,
             prize: this.prize,
-            isExitPlayer: this.isExitPlayer
+            isExitPlayer: this.isExitPlayer,
+            Powerstack:this.Powerstack,
+            hasPower:this.hasPower
         }
         return resp;
     }
@@ -174,6 +184,8 @@ export class Player {
             mid: this.mid,
             did: this.did,
             prize: this.prize,
+            Powerstack:this.Powerstack,
+            hasPower:this.hasPower
         }
         return resp;
     }
@@ -258,6 +270,7 @@ export class Player {
         this.color = this.pos + 1
         this.initPosition = PLAYER_PATH[this.pos][0];
         this.pawnStack = [this.initPosition, this.initPosition, this.initPosition, this.initPosition];
+        this.Powerstack = []
         return true
     }
     public get POS(): number {
@@ -374,6 +387,35 @@ export class Player {
         console.log("\n \n Hash ladder oppnent .......", this.ID);
         this.hasLadder = true;
     }
+    public updatePowerCounter() {
+        console.log("\n \n Hash ladder oppnent .......", this.ID);
+        this.hasPower += 1;
+    }
+    public removePowerCounter() {
+        console.log("\n \n Hash ladder oppnent .......", this.ID);
+        this.hasPower -= 1;
+    }
+
+    public updatePowerStack(pawnPos: number,power:number){
+        for (let i = 0; i < this.pawnStack.length; i++) {
+            if (this.pawnStack[i] == pawnPos) {
+                console.log("=======adding power stack=========")
+                this.Powerstack.push(power)
+                return i;
+            }
+        }
+        
+    }
+
+    public removePowerStack(power:number,index:number){
+        console.log("=======remove power stack=========")
+        this.Powerstack.splice(index,1)
+    }
+
+    public getPowerStack(){
+        return this.Powerstack;
+    }
+
     
     
 }

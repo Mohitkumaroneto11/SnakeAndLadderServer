@@ -8,7 +8,10 @@ export class Board {
     public SnakeTail:Array<number>
     public LadderHead:Array<number>
     public LadderTail:Array<number>
+    public PowerCard:Array<number>
+    public PowerCan:Array<number>
     private redis: RedisStorage;
+    public DicardArray:Array<number>
     
     constructor(){
         this.redis = RedisStorage.Instance;
@@ -16,6 +19,9 @@ export class Board {
         this.SnakeTail = [22,7]
         this.LadderHead = [35,15]
         this.LadderTail = [24,4]
+        this.PowerCan = [1,0,-1]
+        this.PowerCard = [5,10,30]
+        this.DicardArray=[1,42,37,6]
 
     }
     public static get Instance()
@@ -33,10 +39,27 @@ export class Board {
                 this.LadderHead = board.ladder.head;
                 this.LadderTail = board.ladder.tail;
             });
+            this.PowerCan.forEach(async (power)=>{
+                power = await this.randomIntFromInterval(-2,2)
+            })
+            this.DicardArray.concat(this.LadderHead,this.LadderTail,this.SnakeHead,this.SnakeTail)
+            this.PowerCard.forEach(async (pos)=>{
+                pos = await this.getPowerCardPos(this.DicardArray);
+            })
             return true;
         } catch (err: any) {
             console.log('Error while getting gameBoard', err);
             throw err
         }
+    }
+    public async randomIntFromInterval(min:number, max:number) { // min and max included 
+        return Math.floor(Math.random() * (max - min + 1) + min)
+    }
+    public async getPowerCardPos(discardArr:Array<number>): Promise<any> { // discard some array for 
+        let randompos =  Math.floor(Math.random() * (42 - 1 + 1) + 1)
+        if(discardArr.includes(randompos)){
+            return this.getPowerCardPos(discardArr)
+        }
+        return randompos
     }
 }

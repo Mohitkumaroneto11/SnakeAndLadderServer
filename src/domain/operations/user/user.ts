@@ -47,6 +47,7 @@ export class User {
         this.socket.on('gameEntry', this.onGameEntry.bind(this));
         this.socket.on("rollDice", this.onRollDice.bind(this));
         this.socket.on("movePawn", this.onMovePawn.bind(this));
+        this.socket.on("usepowercard", this.onPowerCard.bind(this));
         
         //this.socket.on('updateScore', this.onUpdateScore.bind(this))
     }
@@ -241,6 +242,27 @@ export class User {
             const moveResponse = await this.game.onMovePawn(this.userId, pawnIndex, diceValueIndex);
             console.log("onMovePawn", moveResponse);
             callback(moveResponse);
+        } catch (error) {
+            console.error(error);
+            const resp = new BaseHttpResponse(null, JSON.stringify(error), 400, this.game?.ID);
+            this.game?.log('Error on moveDice=>', resp)
+            callback(resp)
+        }
+    }
+    public async onPowerCard(body: any, callback: any) {
+        try {
+            console.log("\n \n onPowerCard body, ", body);
+            console.log("\n \n onPowerCard body type ", typeof body);
+            this.game.log(`power card event came from user ${this.name} =>`, body);
+            const pawnIndex = body.pawnIndex || 0;
+            const playerPos = body.playerPos;
+            const powerIndex = body.powerIndex || 0;
+            if (!this.game) {
+                return;
+            }
+            const powerCardResponse = await this.game.onPowerCard(this.userId, pawnIndex, powerIndex);
+            console.log("onPowerCard", powerCardResponse);
+            callback(powerCardResponse);
         } catch (error) {
             console.error(error);
             const resp = new BaseHttpResponse(null, JSON.stringify(error), 400, this.game?.ID);

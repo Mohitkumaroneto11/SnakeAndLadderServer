@@ -182,3 +182,16 @@ export enum GameLevel {
     XFAC_MEDIUM = 3,
     XFAC_HARD = 4
 }
+
+export enum PowerCard {
+    PLUSONE = 1,
+    PLUSTWO = 2,
+    MINONE = -1,
+    MINTWO = -2,
+    REVERSE = 0
+}
+export enum SwitchSnakeOrLadderOrPower{
+    SNAKE=1,
+    LADDER=2,
+    POWER=3
+}
